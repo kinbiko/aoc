@@ -7,18 +7,12 @@ def part1(input):
     for line in input.splitlines():
         game, draws = line.split(':')
         game_id = int(game.split()[1])
-
         for draw in draws.split('; '):
             pairs = [pair.split() for pair in draw.split(', ')]
-            for count, color in pairs:
-                if int(count) > legal[color]:
-                    break
-            else:
-                continue
-            break
+            if not all([int(count) <= legal[color] for count, color in pairs]):
+                break
         else:
             sum += game_id
-        
     return sum
 
 
