@@ -1,11 +1,13 @@
 from math import gcd
+from collections import namedtuple
+from dataclasses import dataclass
 
+@dataclass
 class Walker:
-    def __init__(self, network, lr: str, here: str) -> None:
-        self.network = network
-        self.lr = lr
-        self.here = here
-        self.steps = 0
+    network: dict[str, tuple[str, str]]
+    lr: str
+    here: str
+    steps = 0
 
     def step(self):
         self.steps += 1
@@ -16,17 +18,17 @@ def part1(input):
     lr, _, *node_map = input.splitlines()
     network = {line[:3]: (line[7:10], line[12:15]) for line in node_map}
 
-    w = Walker(network, lr, "AAA")
-    while w.here != "ZZZ":
-        w.step()
-    return w.steps
+    walker = Walker(network=network, lr=lr, here="AAA")
+    while walker.here != "ZZZ":
+        walker.step()
+    return walker.steps
 
 def part2(input):
     lr, _, *node_map = input.splitlines()
     network = {line[:3]: (line[7:10], line[12:15]) for line in node_map}
 
     start_positions = [node for node in network if node.endswith("A")]
-    walkers = [Walker(network, lr, start) for start in start_positions]
+    walkers = [Walker(network=network, lr=lr, here=start) for start in start_positions]
     lcm = 1
     for walker in walkers:
         while not walker.here.endswith("Z"):
@@ -34,23 +36,18 @@ def part2(input):
         lcm *= walker.steps // gcd(lcm, walker.steps)
     return lcm
 
-with open('example.txt', 'r') as f:
-    ex = f.read().rstrip("\n")
-with open('example_2.txt', 'r') as f:
-    ex_2 = f.read().rstrip("\n")
-with open('input.txt', 'r') as f:
-    input = f.read().rstrip("\n")
+Test = namedtuple("Test", ["name", "fn", "file", "want"])
+tests = [
+    Test(fn=part1, name="part 1, example", file="example.txt",   want=2),
+    Test(fn=part1, name="part 1, input",   file="input.txt",     want=14429),
+    Test(fn=part2, name="part 2, example", file="example_2.txt", want=6),
+    Test(fn=part2, name="part 2, input",   file="input.txt",     want=10921547990923),
+]
 
-tests = {
-    "part 1, example": {"want": 2, "in": ex, "fn": part1},
-    "part 1, input": {"want": 14429, "in": input, "fn": part1},
-    "part 2, example": {"want": 6, "in": ex_2, "fn": part2},
-    "part 2, input": {"want": 10921547990923, "in": input, "fn": part2},
-}
-
-for name, test in tests.items():
-    want = test['want']
-    got = test["fn"](test["in"])
+for (name, fn, file, want) in tests:
+    with open(file, 'r') as f:
+        input = f.read().rstrip("\n")
+    got = fn(input)
     if want != got:
         print(f'{name}: wanted {want}, got {got}')
         break
